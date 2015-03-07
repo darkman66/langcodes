@@ -1,5 +1,16 @@
 # Langcodes: a library for language codes
 
+
+** warning**
+For python2.x I forked this project and created more advanced version which is going to support caching (redis) and db supports (PostgreSQL, MySQL, MsSQL)
+
+Addition python packages are needed to make sure that this module can work
+* sqlalchemy
+* redis
+
+Module is thread and multiprocess safe
+
+
 **langcodes** knows what languages are. It knows the standardized codes that
 refer to them, such as `en` for English, `es` for Spanish and `hi` for Hindi.
 Often, it knows what these languages are called *in* a language, and that
@@ -192,7 +203,7 @@ Norwegian Bokmål is like Danish.
 
     >>> tag_match_score('no', 'da')
     90
-    
+
 Serbian language users will usually understand Serbian in its other script.
 
     >>> tag_match_score('sr-Latn', 'sr-Cyrl')
@@ -205,7 +216,7 @@ China and Hong Kong use different scripts.
     75
 
 If you explicitly specify Cantonese, the difference becomes greater:
-    
+
     >>> tag_match_score('yue-HK', 'zh-CN')
     37
 
@@ -216,7 +227,7 @@ not the typical way to read Japanese:
     20
 
 Afrikaans speakers can sort of understand Dutch:
-    
+
     >>> tag_match_score('af', 'nl')
     10
 
@@ -373,7 +384,7 @@ or `.variant_names()`, or get all the names at once with `.describe()`.
     >>> shaw = LanguageData.get('en-Shaw-GB')
     >>> pprint(shaw.describe('en'))
     {'language': 'English', 'region': 'United Kingdom', 'script': 'Shavian'}
-    
+
     >>> pprint(shaw.describe('es'))
     {'language': 'inglés', 'region': 'Reino Unido', 'script': 'shaviano'}
 
