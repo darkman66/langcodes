@@ -1,7 +1,7 @@
 # Langcodes: a library for language codes
 
 
-** warning**
+**warning**
 For python2.x I forked this project and created more advanced version which is going to support caching (redis) and db supports (PostgreSQL, MySQL, MsSQL)
 
 Addition python packages are needed to make sure that this module can work
