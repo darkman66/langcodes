@@ -5,10 +5,10 @@ from .util import data_filename
 
 
 class lazy_property(object):
-    '''
+    """
     A lazy_property decorator from StackOverflow:
     http://stackoverflow.com/a/6849299/773754
-    '''
+    """
 
     def __init__(self, fget):
         self.fget = fget
@@ -96,6 +96,7 @@ class LanguageDB:
     condition = threading.Condition()
 
     def __init__(self, db_filename):
+        print('-'*10, db_filename)
         self.filename = db_filename
 
         with self.condition:
@@ -110,6 +111,7 @@ class LanguageDB:
     # =========================================
 
     def setup(self):
+        print 'setup-'*10
         with self.condition:
             for stmt in self.TABLES:
                 self.conn.execute(stmt)
@@ -129,10 +131,11 @@ class LanguageDB:
             self.condition.notifyAll()
 
 
-    # Methods for building the database
-    # =================================
 
     def _add_row(self, table_name, values):
+        """
+        Methods for building the database
+        """
         tuple_template = ', '.join(['?'] * len(values))
         template = "INSERT OR IGNORE INTO %s VALUES (%s)" % (table_name, tuple_template)
         # I know, right? The sqlite3 driver doesn't let you parameterize the
@@ -293,7 +296,7 @@ class LanguageDB:
         """
         results = {orig.lower(): new.lower()
                    for (orig, new) in self.language_replacements()}
-        
+
         # one more to handle the 'root' locale
         results['root'] = 'und'
         return results
@@ -380,10 +383,11 @@ class LanguageDB:
                     matches[(supported, desired)] = int(value)
         return matches
 
-    # Using the database as a context manager
-    # =======================================
 
     def close(self):
+        """
+        Using the database as a context manager
+        """
         with self.condition:
             self.conn.commit()
             self.conn.close()

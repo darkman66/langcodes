@@ -1,5 +1,8 @@
-# coding: utf-8
-from __future__ import print_function, division, unicode_literals
+# -*- coding: utf-8 -*-
+
+import os
+import __main__
+#from __future__ import print_function, division, unicode_literals
 """
 langcodes knows what languages are. It knows the standardized codes that
 refer to them, such as `en` for English, `es` for Spanish and `hi` for Hindi.
@@ -13,12 +16,21 @@ on the functions in langcodes, scroll down and read the docstrings.
 from .tag_parser import parse_tag
 from .db import LanguageDB
 from .util import data_filename
+from .redis_cache import LanguageDBRedis
+from .config import Config
 
 # When we're getting natural language information *about* languages, it's in
 # U.S. English if you don't specify the language.
 DEFAULT_LANGUAGE = 'en-US'
 
+# Load settings if exists and try to use sqlalchemy
+
 # Load the SQLite database that contains the data we need about languages.
+db_engine = Config()
+if db_engine.getDBEngine():
+    db_engine.syncDatabase()
+
+
 DB = LanguageDB(data_filename('subtags.db'))
 
 
@@ -129,8 +141,11 @@ class LanguageData:
         # normalization right away. Smash case when checking, because the
         # case normalization that comes from parse_tag() hasn't been applied
         # yet.
+
+
         if normalize and tag.lower() in DB.normalized_languages:
             tag = DB.normalized_languages[tag.lower()]
+            print ('dfsdfsdf')
 
         components = parse_tag(tag)
 
