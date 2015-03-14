@@ -1,9 +1,13 @@
-from langcodes.registry_parser import parse_registry
-from langcodes.db import LanguageDB
-from langcodes.util import data_filename
-from pathlib import Path
+# -*- coding: utf-8; -*-
+
 import json
 import sys
+from config import Config
+from registry_parser import parse_registry
+from db import LanguageDB
+from util import data_filename
+from pathlib import Path
+
 
 
 def load_registry(db, registry_data, datalang='en'):
@@ -36,7 +40,8 @@ def load_cldr_file(db, typ, langcode, path):
                 order = 2
             if typ == 'variant':
                 subtag = subtag.lower()
-            db.add_name(typ, subtag, langcode, name, order)
+
+            db.addNameBasedOnTableName(typ, subtag, langcode, name, order)
 
 
 def load_cldr_aliases(db, path):
@@ -77,16 +82,32 @@ def load_cldr(db, cldr_path):
     load_cldr_aliases(db, cldr_path / 'supplemental' / 'metadata.json')
 
 
-def main(db_filename):
+def do_setup(db):
+    db.setup()
+    load_registry(db, parse_registry(), 'en')
+    load_cldr(db, Path(data_filename('cldr')))
+    load_bibliographic_aliases(db, Path(data_filename('bibliographic_codes.csv')))
+
+def main(db_filename = None):
     # Create the database
     with LanguageDB(db_filename) as db:
-        db.setup()
-        load_registry(db, parse_registry(), 'en')
-        load_cldr(db, Path(data_filename('cldr')))
-        load_bibliographic_aliases(db, Path(data_filename('bibliographic_codes.csv')))
+        do_setup(db)
+
+def sync_with_sqlalchemy(ini_file = None):
+    # lets try to specify ini file if its available
+    db_engine = Config(ini_file)
+    if db_engine.getDBEngine():
+        db_engine.syncDatabase()
+        db = LanguageDB(db_engine)
+        do_setup(db)
+    else:
+        print 'Nothing will happen! Neither ini file nor attribute for script specified'
 
 
 if __name__ == '__main__':
-    db_filename = sys.argv[1]
-
-    main(db_filename)
+    db_filename = sys.argv[1] if len(sys.argv) > 1 else None
+    if db_filename and 'ini' not in db_filename:
+        print 'Using SQLalchemy as default storage'
+        main(db_filename)
+    else:
+        sync_with_sqlalchemy(db_filename)

@@ -1,4 +1,4 @@
-from langcodes.util import data_filename
+from util import data_filename
 
 LIST_KEYS = {'Description', 'Prefix'}
 
@@ -16,7 +16,7 @@ def parse_file(file):
             # collected and yield the result.
             for parsed in parse_item(lines):
                 yield parsed
-            lines.clear()
+            lines = []
         elif line.startswith('  '):
             # This is a continuation line. Concatenate it to the previous
             # line, including one of the spaces.
@@ -31,7 +31,7 @@ def parse_item(lines):
     """
     Given the lines that form a subtag entry (after joining wrapped lines
     back together), parse the data they contain.
-    
+
     Returns a generator that yields once if there was any data there
     (and an empty generator if this was just the header).
     """
@@ -43,7 +43,7 @@ def parse_item(lines):
         else:
             assert key not in info
             info[key] = value
-    
+
     if 'Subtag' in info or 'Tag' in info:
         yield info
 
@@ -53,8 +53,7 @@ def parse_registry():
     Yield a sequence of dictionaries, containing the info in the included
     IANA subtag registry file.
     """
-    with open(data_filename('language-subtag-registry.txt'),
-              encoding='utf-8') as data_file:
+    with open(data_filename('language-subtag-registry.txt')) as data_file:
         # yield instead of returning, so that we only close the file
         # when finished.
         for parsed in parse_file(data_file):

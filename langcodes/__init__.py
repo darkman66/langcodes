@@ -29,10 +29,11 @@ DEFAULT_LANGUAGE = 'en-US'
 db_engine = Config()
 if db_engine.getDBEngine():
     db_engine.syncDatabase()
+    DB = LanguageDB(db_engine)
+else:
+    DB = LanguageDB(data_filename('subtags.db'))
 
-
-DB = LanguageDB(data_filename('subtags.db'))
-
+print '!'*20, DB
 
 class AmbiguousError(LookupError):
     """
@@ -145,7 +146,6 @@ class LanguageData:
 
         if normalize and tag.lower() in DB.normalized_languages:
             tag = DB.normalized_languages[tag.lower()]
-            print ('dfsdfsdf')
 
         components = parse_tag(tag)
 

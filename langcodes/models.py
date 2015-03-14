@@ -1,73 +1,87 @@
-import os
 import __main__
 from ConfigParser import SafeConfigParser
-from sqlalchemy import Column, String, MetaData, Text, Table, Integer
+from sqlalchemy import Column, String, MetaData, Text, Table, Integer, Boolean
+from sqlalchemy.ext.declarative import declarative_base
 
 metadata = MetaData()
+Base = declarative_base()
 
-language = Table('language', metadata,
-    Column('subtag', Text, primary_key = True),
-    Column('script', Text),
-    Column('is_macro', Integer),
-    Column('is_collection', Integer),
-    Column('preferred', Text),
-    Column('macrolang', Text)
-)
+def sync_db(engine):
+    Base.metadata.create_all(engine)
+
+class Language(Base):
+    __tablename__ = 'language'
+    subtag = Column(Text, primary_key = True)
+    script = Column(Text)
+    is_macro = Column(Boolean)
+    is_collection = Column(Boolean)
+    preferred = Column(Text)
+    macrolang = Column(Text)
 
 
-extlang = Table('extlang', metadata,
-    Column('subtag', Text, primary_key = True),
-    Column('prefixes', Text)
-)
-language_name = Table('language_name',metadata,
-    Column('subtag', Text, primary_key = True),
-    Column('language', Text),
-    Column('name', Text),
-    Column('entry_order', Integer)
-)
 
-nonstandard = Table('nonstandard', metadata,
-    Column('tag', Text, primary_key = True),
-    Column('description', Text),
-    Column('preferred', Text),
-    Column('is_macro', Integer)
-)
+class ExtLang(Base):
+    __tablename__ = 'extlang'
+    subtag = Column(Text, primary_key = True)
+    prefixes = Column(Text)
 
-nonstandard_region = Table('nonstandard_region', metadata,
-    Column('subtag',Text, primary_key = True),
-    Column('preferred', Text)
-)
 
-region = Table('region', metadata,
-    Column('subtag', Text, primary_key = True),
-    Column('deprecated', Integer),
-    Column('preferred', Text)
-)
+class LanguageName(Base):
+    __tablename__ = 'language_name'
+    subtag = Column(Text, primary_key = True)
+    language = Column(Text)
+    name = Column(Text)
+    entry_order = Column(Integer)
 
-region_name = Table('region_name', metadata,
-    Column('subtag', Text, primary_key = True),
-    Column('language', Text),
-    Column('name', Text),
-    Column('entry_order', Integer)
-)
+
+class NonStandard(Base):
+    __tablename__ = 'nonstandard'
+    tag = Column(Text, primary_key = True)
+    description = Column(Text)
+    preferred = Column(Text)
+    is_macro = Column(Boolean)
+
+
+class NonStandardRegion(Base):
+    __tablename__ = 'nonstandard_region'
+    subtag = Column(Text, primary_key = True)
+    preferred = Column(Text)
+
+
+class Region(Base):
+    __tablename__ = 'region'
+    subtag = Column(Text, primary_key = True)
+    deprecated = Column(Boolean)
+    preferred = Column(Text)
+
+
+class RegionName(Base):
+    __tablename__ = 'region_name'
+    subtag = Column(Text, primary_key = True)
+    language = Column(Text)
+    name = Column(Text)
+    entry_order = Column(Integer)
+
 
 # we have no useful information about scripts except their name
-script_name = Table('script_name', metadata,
-    Column('subtag',Text, primary_key = True),
-    Column('language', Text),
-    Column('name', Text),
-    Column('entry_order', Integer)
-)
+class ScriptName(Base):
+    __tablename__ = 'script_name'
+    subtag = Column(Text, primary_key = True)
+    language = Column(Text)
+    name = Column(Text)
+    entry_order = Column(Integer)
+
 
 # was there a reason variants saved their comments?
-variant = Table('variant', metadata,
-    Column('subtag',Text, primary_key = True),
-    Column('prefixes', Text)
-)
+class Variant(Base):
+    __tablename__ = 'variant'
+    subtag = Column(Text, primary_key = True)
+    prefixes = Column(Text)
 
-variant_name = Table('variant_name', metadata,
-    Column('subtag',Text, primary_key = True),
-    Column('language', Text),
-    Column('name', Text),
-    Column('entry_order', Integer)
-)
+
+class VariantName(Base):
+    __tablename__ = 'variant_name'
+    subtag = Column(Text, primary_key = True)
+    language = Column(Text)
+    name = Column(Text)
+    entry_order = Column(Integer)
