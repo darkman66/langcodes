@@ -36,8 +36,9 @@ setup(
     platforms=["any"],
     description="Labels and compares human languages in a standardized way -- Python 2 backport",
     long_description=LONG_DESC,
-    packages=['langcodes'],
-    include_package_data=True,
+    packages = ['langcodes'],
+    include_package_data = True,
+    install_requires = ['sqlalchemy', 'pathlib']
     classifiers=[
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
