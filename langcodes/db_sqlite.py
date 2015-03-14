@@ -188,7 +188,7 @@ class LanguageDBsqlite(object):
         for i, name in enumerate(data['Description']):
             self.add_name('region', subtag, datalang, name, i)
 
-    def add_region_mapping(self, tag, preferred):
+    def _add_region_mapping(self, tag, preferred):
         self._add_row('nonstandard_region', (tag, preferred))
 
     def _add_script(self, data, datalang):

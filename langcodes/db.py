@@ -31,8 +31,8 @@ class LanguageDB(LanguageDBsqlite):
 
     def language_replacements(self, macro = False):
         if self.__useSQLalchemy == True:
-            session = self.db_engine.getSession()
-            out = session().query(NonStandard).filter(NonStandard.is_macro == macro, NonStandard.preferred != None)
+            session = self.db_engine.getSession()()
+            out = session.query(NonStandard).filter(NonStandard.is_macro == macro, NonStandard.preferred != None)
             session.close()
             return [(x.tag, x.preferred) for x in out]
         return None
@@ -40,8 +40,8 @@ class LanguageDB(LanguageDBsqlite):
 
     def list_macrolanguages(self):
         if self.__useSQLalchemy == True:
-            session = self.db_engine.getSession()
-            out = session().query(Language).filter(Language.macrolang != None)
+            session = self.db_engine.getSession()()
+            out = session.query(Language).filter(Language.macrolang != None)
             session.close()
             return [(x.subtag, x.macrolang) for x in out]
         return None
@@ -135,6 +135,10 @@ class LanguageDB(LanguageDBsqlite):
             session.add(NonStandard(tag = tag, description = desc, preferred = preferred, is_macro = is_macro))
             session.commit()
         session.close()
+
+
+    def add_region_mapping(self, tag, preferred):
+        self.add_language_mapping(tag, None, preferred, False)
 
 
     def addNameBasedOnTableName(self, type_name, subtag, langcode, name, order):
