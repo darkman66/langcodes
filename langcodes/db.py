@@ -69,7 +69,7 @@ class LanguageDB(LanguageDBsqlite):
     def __addScriptName(self, session, subtag, datalang, name, entry_order, make_commit = False):
         try:
             session.query(ScriptName).filter_by(subtag = subtag).one()
-        except
+        except NoResultFound:
             session.add(ScriptName(subtag = subtag, language = datalang, name = name, entry_order = i))
             if make_commit == True:
                 session.commit()
