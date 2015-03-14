@@ -150,7 +150,7 @@ class LanguageDB(LanguageDBsqlite):
             elif type_name == 'script':
                 self.__addScriptName(session, subtag, langcode, name, order, True)
             else:
-                print("Ignoring type: %s" % typ)
+                print("Ignoring type: %s" % type_name)
             session.close()
 
 
