@@ -149,6 +149,8 @@ class LanguageDB(LanguageDBsqlite):
                 self.__variantName(session, subtag, langcode, name, order, True)
             elif type_name == 'script':
                 self.__addScriptName(session, subtag, langcode, name, order, True)
+            elif type_name == 'region':
+                self.__addRegionName(session, subtag, langcode, name, order, True)
             else:
                 print("Ignoring type: %s" % type_name)
             session.close()
@@ -166,12 +168,18 @@ class LanguageDB(LanguageDBsqlite):
             session.commit()
 
         for i, name in enumerate(data['Description']):
-            try:
-                session.query(RegionName).filter_by(subtag = subtag).one()
-            except NoResultFound:
-                session.add(RegionName(subtag = subtag, language = datalang, name = name, entry_order = i))
+            self.__addRegionName(session, subtag, datalang, name, i)
         session.commit()
         session.close()
+
+
+    def __addRegionName(self, session, subtag, datalang, name, entry_order, make_commit = False):
+        try:
+            session.query(RegionName).filter_by(subtag = subtag).one()
+        except NoResultFound:
+            session.add(RegionName(subtag = subtag, language = datalang, name = name, entry_order = entry_order))
+            if make_commit == True:
+                session.commit()
 
 
     def add_variant(self, data, datalang):
