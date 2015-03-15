@@ -35,7 +35,7 @@ class LanguageDB(LanguageDBsqlite):
             out = session.query(NonStandard).filter(NonStandard.is_macro == macro, NonStandard.preferred != None)
             session.close()
             return [(x.tag, x.preferred) for x in out]
-        return None
+        return _language_replacements(macro)
 
 
     def list_macrolanguages(self):
@@ -76,43 +76,49 @@ class LanguageDB(LanguageDBsqlite):
 
 
     def add_extlang(self, data, _datalang):
-        session = self.db_engine.getSession()()
-        subtag = data['Subtag']
-        prefixes = ';'.join(data.get('Prefix', '*'))
-        try:
-            session.query(ExtLang).filter_by(subtag = subtag)
-        except NoResultFound:
-            o = ExtLang(subtag = subtag, prefixes = prefixes)
-            session.add(o)
+        if self.__useSQLalchemy == True:
+            session = self.db_engine.getSession()()
+            subtag = data['Subtag']
+            prefixes = ';'.join(data.get('Prefix', '*'))
+            try:
+                session.query(ExtLang).filter_by(subtag = subtag)
+            except NoResultFound:
+                o = ExtLang(subtag = subtag, prefixes = prefixes)
+                session.add(o)
+                session.commit()
+                session.close()
+        else:
+            self._add_extlang(data, _datalang)
+
+    def add_language(self, data, datalang):
+        if self.__useSQLalchemy == True:
+            session_get = self.db_engine.getSession()()
+            subtag = data['Subtag']
+            script = data.get('Suppress-Script')
+            is_macro = 'Macrolanguage' in data
+            is_collection = (data.get('Scope') == 'collection')
+            preferred = data.get('Preferred-Value')
+            macrolang = data.get('Macrolanguage')
+
+            session = self.db_engine.getSession()()
+            try:
+                session_get.query(Language).filter_by(subtag = subtag).one()
+            except NoResultFound:
+                session.add(Language(subtag = subtag, script = script, is_macro = is_macro,
+                                is_collection = is_collection, preferred = preferred,
+                                macrolang = macrolang))
             session.commit()
             session.close()
 
-    def add_language(self, data, datalang):
-        session_get = self.db_engine.getSession()()
-        subtag = data['Subtag']
-        script = data.get('Suppress-Script')
-        is_macro = 'Macrolanguage' in data
-        is_collection = (data.get('Scope') == 'collection')
-        preferred = data.get('Preferred-Value')
-        macrolang = data.get('Macrolanguage')
+            session = self.db_engine.getSession()()
 
-        session = self.db_engine.getSession()()
-        try:
-            session_get.query(Language).filter_by(subtag = subtag).one()
-        except NoResultFound:
-            session.add(Language(subtag = subtag, script = script, is_macro = is_macro,
-                            is_collection = is_collection, preferred = preferred,
-                            macrolang = macrolang))
-        session.commit()
-        session.close()
-
-        session = self.db_engine.getSession()()
-
-        for i, name in enumerate(data['Description']):
-            self.__addLanguageName(session, subtag, datalang, name, i)
-        session.commit()
-        session.close()
-        session_get.close()
+            for i, name in enumerate(data['Description']):
+                self.__addLanguageName(session, subtag, datalang, name, i)
+            session.commit()
+            session.close()
+            session_get.close()
+        else:
+            self._add_language(data, datalang)
 
 
     def __addLanguageName(self, session, subtag, language, name, entry_order, make_commit = False):
@@ -128,14 +134,16 @@ class LanguageDB(LanguageDBsqlite):
 
 
     def add_language_mapping(self, tag, desc, preferred, is_macro):
-        session = self.db_engine.getSession()()
-        try:
-            session.query(NonStandard).filter_by(tag = tag).one()
-        except NoResultFound:
-            session.add(NonStandard(tag = tag, description = desc, preferred = preferred, is_macro = is_macro))
-            session.commit()
-        session.close()
-
+        if self.__useSQLalchemy == True:
+            session = self.db_engine.getSession()()
+            try:
+                session.query(NonStandard).filter_by(tag = tag).one()
+            except NoResultFound:
+                session.add(NonStandard(tag = tag, description = desc, preferred = preferred, is_macro = is_macro))
+                session.commit()
+            session.close()
+        else:
+            add_language_mapping(tag, desc, preferred, is_macro)
 
     def add_region_mapping(self, tag, preferred):
         self.add_language_mapping(tag, None, preferred, False)
@@ -158,23 +166,28 @@ class LanguageDB(LanguageDBsqlite):
             else:
                 print("Ignoring type: %s" % type_name)
             session.close()
+        else:
+            self._add_name(type_name, subtag, langcode, name, order)
 
 
     def add_region(self, data, datalang):
-        session = self.db_engine.getSession()()
-        subtag = data['Subtag']
-        deprecated = 'Deprecated' in data
-        preferred = data.get('Preferred-Value')
-        try:
-            session.query(Region).filter_by(subtag = subtag).one()
-        except NoResultFound:
-            session.add(Region(subtag = subtag, deprecated = deprecated, preferred = preferred))
-            session.commit()
+        if self.__useSQLalchemy == True:
+            session = self.db_engine.getSession()()
+            subtag = data['Subtag']
+            deprecated = 'Deprecated' in data
+            preferred = data.get('Preferred-Value')
+            try:
+                session.query(Region).filter_by(subtag = subtag).one()
+            except NoResultFound:
+                session.add(Region(subtag = subtag, deprecated = deprecated, preferred = preferred))
+                session.commit()
 
-        for i, name in enumerate(data['Description']):
-            self.__addRegionName(session, subtag, datalang, name, i)
-        session.commit()
-        session.close()
+            for i, name in enumerate(data['Description']):
+                self.__addRegionName(session, subtag, datalang, name, i)
+            session.commit()
+            session.close()
+        else:
+            self._add_region(data, datalang)
 
 
     def __addRegionName(self, session, subtag, datalang, name, entry_order, make_commit = False):
@@ -187,20 +200,24 @@ class LanguageDB(LanguageDBsqlite):
 
 
     def add_variant(self, data, datalang):
-        session = self.db_engine.getSession()()
-        subtag = data['Subtag']
-        prefixes = ';'.join(data.get('Prefix', '*'))
-        try:
-            session.query(Variant).filter_by(subtag = subtag).one()
-        except NoResultFound:
-            session.add(Variant(subtag = subtag, prefixes = prefixes))
-        session.commit()
+        if self.__useSQLalchemy == True:
+            session = self.db_engine.getSession()()
+            subtag = data['Subtag']
+            prefixes = ';'.join(data.get('Prefix', '*'))
+            try:
+                session.query(Variant).filter_by(subtag = subtag).one()
+            except NoResultFound:
+                session.add(Variant(subtag = subtag, prefixes = prefixes))
+            session.commit()
 
 
-        for i, name in enumerate(data['Description']):
-            self.__variantName(session, subtag, datalang, name, i)
-        session.commit()
-        session.close()
+            for i, name in enumerate(data['Description']):
+                self.__variantName(session, subtag, datalang, name, i)
+            session.commit()
+            session.close()
+        else:
+            self.add_variant(data, datalang)
+
 
     def __variantName(self, session, subtag, datalang, name, entry_order, make_commit = False):
         try:
