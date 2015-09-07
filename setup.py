@@ -38,7 +38,7 @@ setup(
     long_description=LONG_DESC,
     packages = ['langcodes'],
     include_package_data = True,
-    install_requires = ['sqlalchemy', 'pathlib']
+    install_requires = ['sqlalchemy', 'pathlib'],
     classifiers=[
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
